@@ -194,12 +194,15 @@ void HdsDelegate::onReceiveMessage(
   ENVOY_LOG(debug, "New health check response message {} ", message->DebugString());
 
   // Set response
-  server_response_ms_ = PROTOBUF_GET_MS_REQUIRED(*message, interval);
+  auto server_response_ms = PROTOBUF_GET_MS_REQUIRED(*message, interval);
 
   // Process the HealthCheckSpecifier message
   processMessage(std::move(message));
 
-  setHdsStreamResponseTimer();
+  if (server_response_ms_ != server_response_ms) {
+    server_response_ms_ = server_response_ms;
+    setHdsStreamResponseTimer();
+  }
 }
 
 void HdsDelegate::onReceiveTrailingMetadata(Http::HeaderMapPtr&& metadata) {
