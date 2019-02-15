@@ -213,6 +213,7 @@ void HdsDelegate::onRemoteClose(Grpc::Status::GrpcStatus status, const std::stri
   ENVOY_LOG(warn, "gRPC config stream closed: {}, {}", status, message);
   hds_stream_response_timer_->disableTimer();
   stream_ = nullptr;
+  server_response_ms_ = 0;
   handleFailure();
 }
 
