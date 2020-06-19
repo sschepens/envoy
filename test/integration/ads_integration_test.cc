@@ -987,6 +987,63 @@ TEST_P(AdsIntegrationTestWithRtdsAndSecondaryClusters, Basic) {
 class AdsClusterV3Test : public AdsIntegrationTest {
 public:
   AdsClusterV3Test() : AdsIntegrationTest(envoy::config::core::v3::ApiVersion::V3) {}
+
+  envoy::config::listener::v3::Listener
+  buildSrdsListener(const std::string& name, const std::string& scoped_route,
+                    const std::string& stat_prefix = "ads_test") {
+    API_NO_BOOST(envoy::config::listener::v3::Listener) listener;
+    TestUtility::loadFromYaml(
+        fmt::format(
+            R"EOF(
+        name: {0}
+        address:
+          socket_address:
+            address: {1}
+            port_value: 0
+        filter_chains:
+          filters:
+          - name: http
+            typed_config:
+              "@type": type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager
+              stat_prefix: {2}
+              codec_type: HTTP2
+              scoped_routes:
+                name: {3}
+                scope_key_builder:
+                  fragments:
+                    - header_value_extractor:
+                        name: 'X-Route-Selector'
+                        element_separator: ''
+                        index: 0
+                rds_config_source:
+                  resource_api_version: {4}
+                  ads: {{}}
+                scoped_rds:
+                  scoped_rds_config_source:
+                    resource_api_version: {4}
+                    ads: {{}}
+              http_filters: [{{ name: envoy.filters.http.router }}]
+      )EOF",
+            name, Network::Test::getLoopbackAddressString(ipVersion()), stat_prefix, scoped_route,
+            api_version_ == envoy::config::core::v3::ApiVersion::V2 ? "V2" : "V3"),
+        listener, shouldBoost());
+    return listener;
+  }
+
+  envoy::config::route::v3::ScopedRouteConfiguration
+  buildScopedRouteConfig(const std::string& name, const std::string& route_config) {
+    API_NO_BOOST(envoy::config::route::v3::ScopedRouteConfiguration) scoped_route;
+    TestUtility::loadFromYaml(fmt::format(R"EOF(
+        name: {0}
+        route_configuration_name: {1}
+        key:
+          fragments:
+          - string_key: {1}
+      )EOF",
+                                          name, route_config),
+                              scoped_route, shouldBoost());
+    return scoped_route;
+  }
 };
 
 INSTANTIATE_TEST_SUITE_P(IpVersionsClientTypeDelta, AdsClusterV3Test,
@@ -1122,6 +1179,51 @@ TEST_P(AdsClusterV3Test, XdsBatching) {
         {buildRouteConfig("route_config2", "eds_cluster2"),
          buildRouteConfig("route_config", "dummy_cluster")},
         {buildRouteConfig("route_config2", "eds_cluster2"),
+         buildRouteConfig("route_config", "dummy_cluster")},
+        {}, "1", false);
+  };
+
+  initialize();
+}
+
+// Validates that the initial SRDS request batches all resources referred to RDS
+TEST_P(AdsClusterV3Test, SrdsBatching) {
+  config_helper_.addConfigModifier([this](envoy::config::bootstrap::v3::Bootstrap& bootstrap) {
+    bootstrap.mutable_dynamic_resources()->clear_cds_config();
+    bootstrap.mutable_dynamic_resources()->clear_lds_config();
+
+    auto static_resources = bootstrap.mutable_static_resources();
+    static_resources->add_listeners()->MergeFrom(
+        buildSrdsListener("rds_listener1", "scoped_route1"));
+  });
+
+  on_server_init_function_ = [this]() {
+    createXdsConnection();
+    ASSERT_TRUE(xds_connection_->waitForNewStream(*dispatcher_, xds_stream_));
+    xds_stream_->startGrpcStream();
+
+    const auto srds_type_url =
+        Config::getTypeUrl<envoy::config::route::v3::ScopedRouteConfiguration>(
+            envoy::config::core::v3::ApiVersion::V3);
+    const auto rds_type_url = Config::getTypeUrl<envoy::config::route::v3::RouteConfiguration>(
+        envoy::config::core::v3::ApiVersion::V3);
+
+    EXPECT_TRUE(compareDiscoveryRequest(srds_type_url, "", {}, {}, {}));
+    sendDiscoveryResponse<envoy::config::route::v3::ScopedRouteConfiguration>(
+        srds_type_url,
+        {buildScopedRouteConfig("route_scope", "route_config"),
+         buildScopedRouteConfig("route_scope2", "route_config2")},
+        {buildScopedRouteConfig("route_scope", "route_config"),
+         buildScopedRouteConfig("route_scope2", "route_config2")},
+        {}, "1", false);
+
+    EXPECT_TRUE(compareDiscoveryRequest(rds_type_url, "", {"route_config", "route_config2"},
+                                        {"route_config", "route_config2"}, {}));
+    sendDiscoveryResponse<envoy::config::route::v3::RouteConfiguration>(
+        rds_type_url,
+        {buildRouteConfig("route_config2", "dummy_cluster"),
+         buildRouteConfig("route_config", "dummy_cluster")},
+        {buildRouteConfig("route_config2", "dummy_cluster"),
          buildRouteConfig("route_config", "dummy_cluster")},
         {}, "1", false);
   };
