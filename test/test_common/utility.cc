@@ -17,6 +17,7 @@
 #include "envoy/config/listener/v3/listener.pb.h"
 #include "envoy/config/route/v3/route.pb.h"
 #include "envoy/config/route/v3/route_components.pb.h"
+#include "envoy/config/route/v3/scoped_route.pb.h"
 #include "envoy/http/codec.h"
 #include "envoy/service/runtime/v3/rtds.pb.h"
 
@@ -229,6 +230,11 @@ std::string TestUtility::xdsResourceName(const ProtobufWkt::Any& resource) {
   if (resource.type_url() == Config::getTypeUrl<envoy::config::route::v3::RouteConfiguration>(
                                  envoy::config::core::v3::ApiVersion::V3)) {
     return TestUtility::anyConvert<envoy::config::route::v3::RouteConfiguration>(resource).name();
+  }
+  if (resource.type_url() == Config::getTypeUrl<envoy::config::route::v3::ScopedRouteConfiguration>(
+                                 envoy::config::core::v3::ApiVersion::V3)) {
+    return TestUtility::anyConvert<envoy::config::route::v3::ScopedRouteConfiguration>(resource)
+        .name();
   }
   if (resource.type_url() == Config::getTypeUrl<envoy::config::cluster::v3::Cluster>(
                                  envoy::config::core::v3::ApiVersion::V3)) {
