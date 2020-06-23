@@ -259,6 +259,17 @@ void ScopedRdsConfigSubscription::onConfigUpdate(
         factory_context_.clusterManager().adsMux()->resume(type_urls);
       }
     });
+  } else {
+    const auto type_urls =
+        Envoy::Config::getAllVersionTypeUrls<envoy::config::route::v3::RouteConfiguration>();
+    if (factory_context_.clusterManager().adsMux()) {
+      factory_context_.clusterManager().adsMux()->pause(type_urls);
+    }
+    resume_rds = std::make_unique<Cleanup>([this, type_urls] {
+      if (factory_context_.clusterManager().adsMux()) {
+        factory_context_.clusterManager().adsMux()->resume(type_urls);
+      }
+    });
   }
 
   std::vector<std::string> exception_msgs;
