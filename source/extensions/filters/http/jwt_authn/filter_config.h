@@ -67,6 +67,7 @@ struct JwtAuthnFilterStats {
 struct JwtAuthnFilterProviderStats {
   ALL_JWT_AUTHN_FILTER_PROVIDER_STATS(GENERATE_COUNTER_STRUCT)
 };
+using ProviderStatsMap = absl::flat_hash_map<std::string, JwtAuthnFilterProviderStats>;
 
 /**
  * The per-route filter config
@@ -94,7 +95,7 @@ public:
 
   virtual JwtAuthnFilterStats& stats() PURE;
 
-  virtual absl::flat_hash_map<std::string, JwtAuthnFilterProviderStats> providerStats() PURE;
+  virtual ProviderStatsMap providerStats() PURE;
 
   virtual bool bypassCorsPreflightRequest() const PURE;
 
@@ -138,7 +139,7 @@ public:
   // FilterConfig
 
   JwtAuthnFilterStats& stats() override { return stats_; }
-  absl::flat_hash_map<std::string, JwtAuthnFilterProviderStats> providerStats() override { return provider_stats_; }
+  ProviderStatsMap providerStats() override { return provider_stats_; }
 
   bool bypassCorsPreflightRequest() const override { return proto_config_.bypass_cors_preflight(); }
 
@@ -189,8 +190,8 @@ private:
     return {ALL_JWT_AUTHN_FILTER_STATS(POOL_COUNTER_PREFIX(scope, final_prefix))};
   }
 
-  absl::flat_hash_map<std::string, JwtAuthnFilterProviderStats> generateProviderStats(const std::string& prefix, Stats::Scope& scope) {
-    absl::flat_hash_map<std::string, JwtAuthnFilterProviderStats> provider_stats;
+  ProviderStatsMap generateProviderStats(const std::string& prefix, Stats::Scope& scope) {
+    ProviderStatsMap provider_stats;
     for (const auto& it : proto_config_.providers()) {
       const std::string final_prefix = prefix + "jwt_authn." + it.first + ".";
       provider_stats.emplace(it.first, JwtAuthnFilterProviderStats{ALL_JWT_AUTHN_FILTER_PROVIDER_STATS(POOL_COUNTER_PREFIX(scope, final_prefix))});
@@ -210,7 +211,7 @@ private:
   // The stats for the filter.
   JwtAuthnFilterStats stats_;
   // Map for provider stats.
-  absl::flat_hash_map<std::string, JwtAuthnFilterProviderStats> provider_stats_;
+  ProviderStatsMap provider_stats_;
   // Thread local slot to store per-thread auth store
   ThreadLocal::SlotPtr tls_;
   // the cluster manager object.

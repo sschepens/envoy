@@ -46,7 +46,7 @@ public:
               (const PerRouteFilterConfig& per_route), (const));
   MOCK_METHOD(bool, bypassCorsPreflightRequest, (), (const));
   MOCK_METHOD(JwtAuthnFilterStats&, stats, ());
-  MOCK_METHOD(absl::flat_hash_map<std::string, JwtAuthnFilterProviderStats>, providerStats, ());
+  MOCK_METHOD(ProviderStatsMap, providerStats, ());
 
   NiceMock<Stats::MockIsolatedStatsStore> stats_store_;
   JwtAuthnFilterStats stats_;
