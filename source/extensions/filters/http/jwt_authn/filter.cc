@@ -134,7 +134,11 @@ void Filter::recordProviderStat(std::string provider_name, const Status& status)
   auto provider_stats = config_->providerStats();
   auto search = provider_stats.find(provider_name);
   ASSERT(search != provider_stats.end());
-  search->second.inc();
+  if (Status::Ok == status) {
+    search->second.verification_passed_.inc();
+  } else {
+    search->second.verification_failed_.inc();
+  }
 }
 
 Http::FilterDataStatus Filter::decodeData(Buffer::Instance&, bool) {
