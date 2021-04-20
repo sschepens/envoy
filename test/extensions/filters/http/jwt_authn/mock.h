@@ -46,6 +46,7 @@ class MockVerifierCallbacks : public Verifier::Callbacks {
 public:
   MOCK_METHOD(void, setPayload, (const ProtobufWkt::Struct& payload));
   MOCK_METHOD(void, onComplete, (const Status& status));
+  MOCK_METHOD(void, recordProviderStat, (std::string provider_name, const Status& status));
 };
 
 class MockVerifier : public Verifier {
