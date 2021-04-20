@@ -564,6 +564,8 @@ requires_all:
 };
 
 TEST_F(AllowMissingInAndOfOrListTest, NoJwt) {
+  EXPECT_CALL(mock_cb_, recordProviderStat("example_provider", Status::JwtMissed));
+  EXPECT_CALL(mock_cb_, recordProviderStat("other_provider", Status::JwtMissed));
   EXPECT_CALL(mock_cb_, onComplete(Status::Ok));
   auto headers = Http::TestRequestHeaderMapImpl{};
   context_ = Verifier::createContext(headers, parent_span_, &mock_cb_);
@@ -571,6 +573,8 @@ TEST_F(AllowMissingInAndOfOrListTest, NoJwt) {
 }
 
 TEST_F(AllowMissingInAndOfOrListTest, BadJwt) {
+  EXPECT_CALL(mock_cb_, recordProviderStat("example_provider", Status::JwtVerificationFail));
+  EXPECT_CALL(mock_cb_, recordProviderStat("other_provider", Status::JwtMissed));
   // Bad JWT should fail.
   EXPECT_CALL(mock_cb_, onComplete(Status::JwtVerificationFail));
   auto headers = Http::TestRequestHeaderMapImpl{{kExampleHeader, NonExistKidToken}};
@@ -580,6 +584,8 @@ TEST_F(AllowMissingInAndOfOrListTest, BadJwt) {
 }
 
 TEST_F(AllowMissingInAndOfOrListTest, OneGoodJwt) {
+  EXPECT_CALL(mock_cb_, recordProviderStat("example_provider", Status::Ok));
+  EXPECT_CALL(mock_cb_, recordProviderStat("other_provider", Status::JwtMissed));
   EXPECT_CALL(mock_cb_, onComplete(Status::Ok));
   auto headers = Http::TestRequestHeaderMapImpl{{kExampleHeader, GoodToken}};
   context_ = Verifier::createContext(headers, parent_span_, &mock_cb_);
@@ -588,6 +594,8 @@ TEST_F(AllowMissingInAndOfOrListTest, OneGoodJwt) {
 }
 
 TEST_F(AllowMissingInAndOfOrListTest, TwoGoodJwts) {
+  EXPECT_CALL(mock_cb_, recordProviderStat("example_provider", Status::Ok));
+  EXPECT_CALL(mock_cb_, recordProviderStat("other_provider", Status::Ok));
   EXPECT_CALL(mock_cb_, onComplete(Status::Ok));
   auto headers =
       Http::TestRequestHeaderMapImpl{{kExampleHeader, GoodToken}, {kOtherHeader, OtherGoodToken}};
@@ -598,6 +606,8 @@ TEST_F(AllowMissingInAndOfOrListTest, TwoGoodJwts) {
 }
 
 TEST_F(AllowMissingInAndOfOrListTest, GoodAndBadJwts) {
+  EXPECT_CALL(mock_cb_, recordProviderStat("example_provider", Status::Ok));
+  EXPECT_CALL(mock_cb_, recordProviderStat("other_provider", Status::JwtUnknownIssuer));
   EXPECT_CALL(mock_cb_, onComplete(Status::JwtUnknownIssuer));
   // Use the token with example.com issuer for x-other.
   auto headers =
@@ -609,6 +619,8 @@ TEST_F(AllowMissingInAndOfOrListTest, GoodAndBadJwts) {
 }
 
 TEST_F(AllowMissingInAndOfOrListTest, BadAndGoodJwts) {
+  EXPECT_CALL(mock_cb_, recordProviderStat("example_provider", Status::JwtExpired));
+  EXPECT_CALL(mock_cb_, recordProviderStat("other_provider", Status::Ok));
   EXPECT_CALL(mock_cb_, onComplete(Status::JwtExpired));
   auto headers = Http::TestRequestHeaderMapImpl{{kExampleHeader, ExpiredToken},
                                                 {kOtherHeader, OtherGoodToken}};

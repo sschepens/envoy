@@ -62,6 +62,7 @@ TEST_F(ProviderVerifierTest, TestOkJWT) {
     EXPECT_TRUE(TestUtility::protoEqual(payload, getExpectedPayload("my_payload")));
   }));
 
+  EXPECT_CALL(mock_cb_, recordProviderStat("example_provider", Status::Ok));
   EXPECT_CALL(mock_cb_, onComplete(Status::Ok));
 
   auto headers = Http::TestRequestHeaderMapImpl{
@@ -84,6 +85,7 @@ TEST_F(ProviderVerifierTest, TestSpanPassedDown) {
     EXPECT_TRUE(TestUtility::protoEqual(payload, getExpectedPayload("my_payload")));
   }));
 
+  EXPECT_CALL(mock_cb_, recordProviderStat("example_provider", Status::Ok));
   EXPECT_CALL(mock_cb_, onComplete(Status::Ok));
 
   auto options = Http::AsyncClient::RequestOptions()
@@ -105,6 +107,7 @@ TEST_F(ProviderVerifierTest, TestMissedJWT) {
   TestUtility::loadFromYaml(ExampleConfig, proto_config_);
   createVerifier();
 
+  EXPECT_CALL(mock_cb_, recordProviderStat("example_provider", Status::JwtMissed));
   EXPECT_CALL(mock_cb_, onComplete(Status::JwtMissed));
 
   auto headers = Http::TestRequestHeaderMapImpl{{"sec-istio-auth-userinfo", ""}};
@@ -140,6 +143,7 @@ rules:
   TestUtility::loadFromYaml(config, proto_config_);
   createVerifier();
 
+  EXPECT_CALL(mock_cb_, recordProviderStat("other_provider", Status::JwtUnknownIssuer));
   EXPECT_CALL(mock_cb_, onComplete(Status::JwtUnknownIssuer));
 
   auto headers = Http::TestRequestHeaderMapImpl{
@@ -163,6 +167,16 @@ TEST_F(ProviderVerifierTest, TestRequiresProviderWithAudiences) {
   createVerifier();
   MockUpstream mock_pubkey(mock_factory_ctx_.cluster_manager_, PublicKey);
 
+  EXPECT_CALL(mock_cb_, recordProviderStat(_, _))
+      .WillOnce(
+          Invoke([](std::string name, const Status& status) { 
+            ASSERT_EQ(name, "example_provider");
+            ASSERT_EQ(status, Status::JwtAudienceNotAllowed);
+          }))
+      .WillOnce(Invoke([](std::string name, const Status& status) {
+        ASSERT_EQ(name, "example_provider");
+        ASSERT_EQ(status, Status::Ok);
+      }));
   EXPECT_CALL(mock_cb_, onComplete(_))
       .WillOnce(
           Invoke([](const Status& status) { ASSERT_EQ(status, Status::JwtAudienceNotAllowed); }))

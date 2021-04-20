@@ -127,6 +127,7 @@ public:
           ctximpl.addPayload(name, payload);
         },
         [this, context](const Status& status) {
+          context->callback()->recordProviderStat(provider_name_, status);
           onComplete(status, static_cast<ContextImpl&>(*context));
         });
     if (!ctximpl.getCompletionState(this).is_completed_) {
