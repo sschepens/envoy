@@ -48,10 +48,24 @@ private:
   COUNTER(denied)
 
 /**
+ * All stats for the Jwt Authn filter. @see stats_macros.h
+ */
+#define ALL_JWT_AUTHN_FILTER_PROVIDER_STATS(COUNTER)                                                        \
+  COUNTER(verification_passed)                                                                                 \
+  COUNTER(verification_failed)
+
+/**
  * Wrapper struct for jwt_authn filter stats. @see stats_macros.h
  */
 struct JwtAuthnFilterStats {
   ALL_JWT_AUTHN_FILTER_STATS(GENERATE_COUNTER_STRUCT)
+};
+
+/**
+ * Wrapper struct for jwt_authn filter provider stats. @see stats_macros.h
+ */
+struct JwtAuthnFilterProviderStats {
+  ALL_JWT_AUTHN_FILTER_PROVIDER_STATS(GENERATE_COUNTER_STRUCT)
 };
 
 /**
@@ -79,6 +93,8 @@ public:
   virtual ~FilterConfig() = default;
 
   virtual JwtAuthnFilterStats& stats() PURE;
+
+  virtual absl::flat_hash_map<absl::string_view, JwtAuthnFilterProviderStats> providerStats() PURE;
 
   virtual bool bypassCorsPreflightRequest() const PURE;
 
@@ -122,6 +138,7 @@ public:
   // FilterConfig
 
   JwtAuthnFilterStats& stats() override { return stats_; }
+  absl::flat_hash_map<absl::string_view, JwtAuthnFilterProviderStats> providerStats() override { return provider_stats_; }
 
   bool bypassCorsPreflightRequest() const override { return proto_config_.bypass_cors_preflight(); }
 
@@ -161,6 +178,7 @@ private:
                    const std::string& stats_prefix, Server::Configuration::FactoryContext& context)
       : proto_config_(std::move(proto_config)),
         stats_(generateStats(stats_prefix, context.scope())),
+        provider_stats_(generateProviderStats(stats_prefix, context.scope())),
         tls_(context.threadLocal().allocateSlot()), cm_(context.clusterManager()),
         time_source_(context.dispatcher().timeSource()), api_(context.api()) {}
 
@@ -169,6 +187,15 @@ private:
   JwtAuthnFilterStats generateStats(const std::string& prefix, Stats::Scope& scope) {
     const std::string final_prefix = prefix + "jwt_authn.";
     return {ALL_JWT_AUTHN_FILTER_STATS(POOL_COUNTER_PREFIX(scope, final_prefix))};
+  }
+
+  JwtAuthnFilterStats generateProviderStats(const std::string& prefix, Stats::Scope& scope) {
+    absl::flat_hash_map<absl::string_view, JwtAuthnFilterProviderStats> provider_stats;
+    for (const auto& it : proto_config_.providers()) {
+      const std::string final_prefix = prefix + "jwt_authn." + it.first + ".";
+      provider_stats.emplace(it.first, {ALL_JWT_AUTHN_FILTER_PROVIDER_STATS(POOL_COUNTER_PREFIX(scope, final_prefix))})
+    }
+    return provider_stats;
   }
 
   struct MatcherVerifierPair {
@@ -182,6 +209,8 @@ private:
   envoy::extensions::filters::http::jwt_authn::v3::JwtAuthentication proto_config_;
   // The stats for the filter.
   JwtAuthnFilterStats stats_;
+  // Map for provider stats.
+  absl::flat_hash_map<absl::string_view, JwtAuthnFilterProviderStats> provider_stats_;
   // Thread local slot to store per-thread auth store
   ThreadLocal::SlotPtr tls_;
   // the cluster manager object.

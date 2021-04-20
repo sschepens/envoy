@@ -40,6 +40,14 @@ public:
      * @param status the status of the request.
      */
     virtual void onComplete(const ::google::jwt_verify::Status& status) PURE;
+
+    /**
+     * Records provider verification stats.
+     *
+     * @param provider_name the name of the provider.
+     * @param status the status of the verification for the given provider.
+     */
+    virtual void recordProviderStat(string provider_name, const ::google::jwt_verify::Status& status) PURE;
   };
 
   // Context object to hold data needed for verifier.

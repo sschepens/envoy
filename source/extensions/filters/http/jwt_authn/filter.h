@@ -31,11 +31,13 @@ public:
   void setDecoderFilterCallbacks(Http::StreamDecoderFilterCallbacks& callbacks) override;
 
 private:
-  // Following two functions are for Verifier::Callbacks interface.
+  // Following three functions are for Verifier::Callbacks interface.
   // Pass the payload as Struct.
   void setPayload(const ProtobufWkt::Struct& payload) override;
   // It will be called when its verify() call is completed.
   void onComplete(const ::google::jwt_verify::Status& status) override;
+  // It will be called upon provider verification completion to record provider stats.
+  void recordProviderStat(std::string provider_name, const ::google::jwt_verify::Status& status) PURE;
 
   // The callback function.
   Http::StreamDecoderFilterCallbacks* decoder_callbacks_;
