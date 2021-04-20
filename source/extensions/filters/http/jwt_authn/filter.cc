@@ -131,7 +131,7 @@ void Filter::onComplete(const Status& status) {
 }
 
 void Filter::recordProviderStat(std::string provider_name, const Status& status) {
-  auto provider_stats = config_.providerStats();
+  auto provider_stats = config_->providerStats();
   auto search = provider_stats.find(provider_name);
   ASSERT(search != provider_stats.end());
   search->second.inc();

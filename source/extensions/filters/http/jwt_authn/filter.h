@@ -37,7 +37,7 @@ private:
   // It will be called when its verify() call is completed.
   void onComplete(const ::google::jwt_verify::Status& status) override;
   // It will be called upon provider verification completion to record provider stats.
-  void recordProviderStat(std::string provider_name, const ::google::jwt_verify::Status& status) PURE;
+  void recordProviderStat(std::string provider_name, const ::google::jwt_verify::Status& status) override;
 
   // The callback function.
   Http::StreamDecoderFilterCallbacks* decoder_callbacks_;

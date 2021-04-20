@@ -47,7 +47,7 @@ public:
      * @param provider_name the name of the provider.
      * @param status the status of the verification for the given provider.
      */
-    virtual void recordProviderStat(string provider_name, const ::google::jwt_verify::Status& status) PURE;
+    virtual void recordProviderStat(std::string provider_name, const ::google::jwt_verify::Status& status) PURE;
   };
 
   // Context object to hold data needed for verifier.
