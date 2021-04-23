@@ -201,6 +201,8 @@ public:
   bool matches(const Network::Connection& connection, const Envoy::Http::RequestHeaderMap& headers,
                const StreamInfo::StreamInfo&) const override;
 
+  std::string& policyId() const { return policy_id_; }
+
 private:
   const std::string policy_id_;
   const OrMatcher permissions_;
