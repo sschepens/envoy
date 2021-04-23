@@ -22,7 +22,8 @@ RoleBasedAccessControlEngineImpl::RoleBasedAccessControlEngineImpl(
   }
 
   for (const auto& policy : rules.policies()) {
-    policies_.emplace(std::make_unique<PolicyMatcher>(policy.first, policy.second, builder_.get()));
+    policies_.emplace_back(
+        std::make_unique<PolicyMatcher>(policy.first, policy.second, builder_.get()));
   }
 }
 
