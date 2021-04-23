@@ -46,7 +46,7 @@ private:
   const envoy::config::rbac::v3::RBAC::Action action_;
   const EnforcementMode mode_;
 
-  std::map<std::string, std::unique_ptr<PolicyMatcher>> policies_;
+  std::vector<std::unique_ptr<PolicyMatcher>> policies_;
 
   Protobuf::Arena constant_arena_;
   Expr::BuilderPtr builder_;

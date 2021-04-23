@@ -189,8 +189,9 @@ private:
  */
 class PolicyMatcher : public Matcher, NonCopyable {
 public:
-  PolicyMatcher(const envoy::config::rbac::v3::Policy& policy, Expr::Builder* builder)
-      : permissions_(policy.permissions()), principals_(policy.principals()),
+  PolicyMatcher(const std::string& policy_id, const envoy::config::rbac::v3::Policy& policy,
+                Expr::Builder* builder)
+      : policy_id_(policy_id), permissions_(policy.permissions()), principals_(policy.principals()),
         condition_(policy.condition()) {
     if (policy.has_condition()) {
       expr_ = Expr::createExpression(*builder, condition_);
@@ -201,6 +202,7 @@ public:
                const StreamInfo::StreamInfo&) const override;
 
 private:
+  const std::string policy_id_;
   const OrMatcher permissions_;
   const OrMatcher principals_;
 

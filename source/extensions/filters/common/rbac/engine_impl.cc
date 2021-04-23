@@ -22,7 +22,7 @@ RoleBasedAccessControlEngineImpl::RoleBasedAccessControlEngineImpl(
   }
 
   for (const auto& policy : rules.policies()) {
-    policies_.emplace(policy.first, std::make_unique<PolicyMatcher>(policy.second, builder_.get()));
+    policies_.emplace(std::make_unique<PolicyMatcher>(policy.first, policy.second, builder_.get()));
   }
 }
 
@@ -66,10 +66,10 @@ bool RoleBasedAccessControlEngineImpl::checkPolicyMatch(
   bool matched = false;
 
   for (const auto& policy : policies_) {
-    if (policy.second->matches(connection, headers, info)) {
+    if (policy->matches(connection, headers, info)) {
       matched = true;
       if (effective_policy_id != nullptr) {
-        *effective_policy_id = policy.first;
+        *effective_policy_id = policy->policyId();
       }
       break;
     }
