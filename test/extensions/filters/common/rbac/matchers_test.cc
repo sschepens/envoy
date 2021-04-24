@@ -357,7 +357,7 @@ TEST(PolicyMatcher, PolicyMatcher) {
   policy.add_principals()->mutable_authenticated()->mutable_principal_name()->set_exact("bar");
   Expr::BuilderPtr builder = Expr::createBuilder(nullptr);
 
-  RBAC::PolicyMatcher matcher(policy, builder.get());
+  RBAC::PolicyMatcher matcher("policy", policy, builder.get());
 
   Envoy::Network::MockConnection conn;
   Envoy::Http::TestRequestHeaderMapImpl headers;
