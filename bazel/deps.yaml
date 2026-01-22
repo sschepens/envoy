@@ -847,13 +847,6 @@ v8:
   extensions:
   - envoy.wasm.runtime.v8
   cpe: "cpe:2.3:a:google:v8:*"
-zlib:
-  use_category:
-  - controlplane
-  - dataplane_core
-  cpe: "cpe:2.3:a:gnu:zlib:*"
-  license: "zlib"
-  license_url: "https://github.com/madler/zlib/blob/v{version}/zlib.h"
 zstd:
   use_category:
   - dataplane_ext

@@ -193,7 +193,6 @@ def envoy_dependencies(skip_targets = []):
     _io_opentelemetry_api_cpp()
     _net_colm_open_source_colm()
     _net_colm_open_source_ragel()
-    _zlib()
     _intel_dlb()
     _com_github_zlib_ng_zlib_ng()
     _org_boost()
@@ -465,12 +464,6 @@ def _net_colm_open_source_ragel():
     external_http_archive(
         name = "net_colm_open_source_ragel",
         build_file_content = BUILD_ALL_CONTENT,
-    )
-
-def _zlib():
-    external_http_archive(
-        name = "zlib",
-        build_file = "@envoy//bazel/external:zlib.BUILD",
     )
 
 def _com_github_zlib_ng_zlib_ng():
