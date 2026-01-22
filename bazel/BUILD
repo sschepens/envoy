@@ -526,20 +526,12 @@ selects.config_setting_group(
     ],
 )
 
-config_setting(
-    name = "zlib_original",
-    values = {"define": "zlib=original"},
-)
-
 # Alias pointing to the selected version of zlib:
 # - Regular zlib from @zlib when --define zlib=original is specified.
 # - zlib-ng from //bazel/foreign_cc:zlib_ng otherwise.
 alias(
     name = "zlib",
-    actual = select({
-        "//bazel:zlib_original": "@zlib",
-        "//conditions:default": "@com_github_zlib_ng_zlib_ng//:zlib",
-    }),
+    actual = "@zlib_ng"
 )
 
 config_setting(
