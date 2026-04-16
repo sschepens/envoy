@@ -68,8 +68,8 @@ public:
                    Envoy::JwtVerify::getStatusString(expected_status).c_str());
     };
     auto set_extracted_jwt_data_cb = [this](const std::string& name,
-                                            const Protobuf::Struct& extracted_data) {
-      this->addExtractedData(name, extracted_data);
+                                            Protobuf::Struct extracted_data) {
+      this->addExtractedData(name, std::move(extracted_data));
     };
     initTokenExtractor();
     auto tokens = extractor_->extract(headers);
@@ -89,8 +89,8 @@ public:
 
   // This is like ContextImpl::addExtractedData in
   // source/extensions/filters/http/jwt_authn/verifier.cc.
-  void addExtractedData(const std::string& name, const Protobuf::Struct& extracted_data) {
-    *(*out_extracted_data_.mutable_fields())[name].mutable_struct_value() = extracted_data;
+  void addExtractedData(const std::string& name, Protobuf::Struct extracted_data) {
+    (*out_extracted_data_.mutable_fields())[name].mutable_struct_value()->Swap(&extracted_data);
   }
 
   JwtAuthentication proto_config_;

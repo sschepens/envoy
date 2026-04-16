@@ -57,13 +57,13 @@ public:
   void storeAuth(AuthenticatorPtr&& auth) { auths_.emplace_back(std::move(auth)); }
 
   // Add a pair of (name, payload), called by Authenticator. It can be either JWT header or payload.
-  void addExtractedData(const std::string& name, const Protobuf::Struct& extracted_data) {
-    *(*extracted_data_.mutable_fields())[name].mutable_struct_value() = extracted_data;
+  void addExtractedData(const std::string& name, Protobuf::Struct extracted_data) {
+    (*extracted_data_.mutable_fields())[name].mutable_struct_value()->Swap(&extracted_data);
   }
 
   void setExtractedData() {
     if (!extracted_data_.fields().empty()) {
-      callback_.setExtractedData(extracted_data_);
+      callback_.setExtractedData(std::move(extracted_data_));
     }
   }
 
@@ -121,8 +121,8 @@ public:
     extractor_->sanitizeHeaders(ctximpl.headers());
     auth->verify(
         ctximpl.headers(), ctximpl.parentSpan(), extractor_->extract(ctximpl.headers()),
-        [&ctximpl](const std::string& name, const Protobuf::Struct& extracted_data) {
-          ctximpl.addExtractedData(name, extracted_data);
+        [&ctximpl](const std::string& name, Protobuf::Struct extracted_data) {
+          ctximpl.addExtractedData(name, std::move(extracted_data));
         },
         [this, &ctximpl](const Status& status) { onComplete(status, ctximpl); },
         [&ctximpl]() { ctximpl.callback()->clearRouteCache(); });
@@ -171,8 +171,8 @@ public:
     extractor_->sanitizeHeaders(ctximpl.headers());
     auth->verify(
         ctximpl.headers(), ctximpl.parentSpan(), extractor_->extract(ctximpl.headers()),
-        [&ctximpl](const std::string& name, const Protobuf::Struct& extracted_data) {
-          ctximpl.addExtractedData(name, extracted_data);
+        [&ctximpl](const std::string& name, Protobuf::Struct extracted_data) {
+          ctximpl.addExtractedData(name, std::move(extracted_data));
         },
         [this, &ctximpl](const Status& status) { onComplete(status, ctximpl); },
         [&ctximpl]() { ctximpl.callback()->clearRouteCache(); });
@@ -204,8 +204,8 @@ public:
     extractor_->sanitizeHeaders(ctximpl.headers());
     auth->verify(
         ctximpl.headers(), ctximpl.parentSpan(), extractor_->extract(ctximpl.headers()),
-        [&ctximpl](const std::string& name, const Protobuf::Struct& extracted_data) {
-          ctximpl.addExtractedData(name, extracted_data);
+        [&ctximpl](const std::string& name, Protobuf::Struct extracted_data) {
+          ctximpl.addExtractedData(name, std::move(extracted_data));
         },
         [this, &ctximpl](const Status& status) { onComplete(status, ctximpl); },
         [&ctximpl]() { ctximpl.callback()->clearRouteCache(); });
@@ -392,8 +392,8 @@ public:
     extractor_->sanitizeHeaders(ctximpl.headers());
     auth->verify(
         ctximpl.headers(), ctximpl.parentSpan(), extractor_->extract(ctximpl.headers()),
-        [&ctximpl](const std::string& name, const Protobuf::Struct& extracted_data) {
-          ctximpl.addExtractedData(name, extracted_data);
+        [&ctximpl](const std::string& name, Protobuf::Struct extracted_data) {
+          ctximpl.addExtractedData(name, std::move(extracted_data));
         },
         [this, &ctximpl](const Status& status) {
           // Always treat as success for extract-only mode

@@ -38,6 +38,8 @@ public:
     }
   }
 
+  bool enabled() const override { return jwt_lru_cache_ != nullptr; }
+
   JwtVerify::Jwt* lookup(const std::string& token) override {
     if (!jwt_lru_cache_) {
       return nullptr;

@@ -25,6 +25,9 @@ class JwtCache {
 public:
   virtual ~JwtCache() = default;
 
+  // Returns true if the cache is enabled.
+  virtual bool enabled() const PURE;
+
   // Lookup a JWT in the cache, if found return the pointer to its parsed jwt struct.
   // If no found, return nullptr.
   virtual JwtVerify::Jwt* lookup(const std::string& token) PURE;

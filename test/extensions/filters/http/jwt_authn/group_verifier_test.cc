@@ -175,7 +175,7 @@ rules:
   createSyncMockAuthsAndVerifier(StatusMap{{"example_provider", Status::Ok}});
 
   EXPECT_CALL(mock_cb_, setExtractedData(_))
-      .WillOnce(Invoke([](const Protobuf::Struct& extracted_data) {
+      .WillOnce(Invoke([](Protobuf::Struct&& extracted_data) {
         EXPECT_TRUE(TestUtility::protoEqual(extracted_data,
                                             getExpectedExtractedData({"example_provider"})));
       }));
@@ -232,7 +232,7 @@ TEST_F(GroupVerifierTest, TestRequiresAll) {
       StatusMap{{"example_provider", Status::Ok}, {"other_provider", Status::Ok}});
 
   EXPECT_CALL(mock_cb_, setExtractedData(_))
-      .WillOnce(Invoke([](const Protobuf::Struct& extracted_data) {
+      .WillOnce(Invoke([](Protobuf::Struct&& extracted_data) {
         EXPECT_TRUE(TestUtility::protoEqual(
             extracted_data, getExpectedExtractedData({"example_provider", "other_provider"})));
       }));
@@ -320,7 +320,7 @@ TEST_F(GroupVerifierTest, TestRequiresAnyFirstAuthOK) {
   createSyncMockAuthsAndVerifier(StatusMap{{"example_provider", Status::Ok}});
 
   EXPECT_CALL(mock_cb_, setExtractedData(_))
-      .WillOnce(Invoke([](const Protobuf::Struct& extracted_data) {
+      .WillOnce(Invoke([](Protobuf::Struct&& extracted_data) {
         EXPECT_TRUE(TestUtility::protoEqual(extracted_data,
                                             getExpectedExtractedData({"example_provider"})));
       }));
@@ -343,7 +343,7 @@ TEST_F(GroupVerifierTest, TestRequiresAnyLastAuthOk) {
       StatusMap{{"example_provider", Status::JwtUnknownIssuer}, {"other_provider", Status::Ok}});
 
   EXPECT_CALL(mock_cb_, setExtractedData(_))
-      .WillOnce(Invoke([](const Protobuf::Struct& extracted_data) {
+      .WillOnce(Invoke([](Protobuf::Struct&& extracted_data) {
         EXPECT_TRUE(
             TestUtility::protoEqual(extracted_data, getExpectedExtractedData({"other_provider"})));
       }));
@@ -432,7 +432,7 @@ TEST_F(GroupVerifierTest, TestAnyInAllFirstAnyIsOk) {
   createSyncMockAuthsAndVerifier(StatusMap{{"provider_1", Status::Ok}, {"provider_3", Status::Ok}});
 
   EXPECT_CALL(mock_cb_, setExtractedData(_))
-      .WillOnce(Invoke([](const Protobuf::Struct& extracted_data) {
+      .WillOnce(Invoke([](Protobuf::Struct&& extracted_data) {
         EXPECT_TRUE(TestUtility::protoEqual(
             extracted_data, getExpectedExtractedData({"provider_1", "provider_3"})));
       }));
@@ -452,7 +452,7 @@ TEST_F(GroupVerifierTest, TestAnyInAllLastAnyIsOk) {
                                            {"provider_3", Status::Ok}});
 
   EXPECT_CALL(mock_cb_, setExtractedData(_))
-      .WillOnce(Invoke([](const Protobuf::Struct& extracted_data) {
+      .WillOnce(Invoke([](Protobuf::Struct&& extracted_data) {
         EXPECT_TRUE(TestUtility::protoEqual(
             extracted_data, getExpectedExtractedData({"provider_2", "provider_3"})));
       }));

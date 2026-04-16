@@ -19,7 +19,7 @@ using AuthenticatorPtr = std::unique_ptr<Authenticator>;
 using AuthenticatorCallback = std::function<void(const JwtVerify::Status& status)>;
 
 using SetExtractedJwtDataCallback =
-    std::function<void(const std::string&, const Protobuf::Struct&)>;
+    std::function<void(const std::string&, Protobuf::Struct)>;
 
 using ClearRouteCacheCallback = std::function<void()>;
 

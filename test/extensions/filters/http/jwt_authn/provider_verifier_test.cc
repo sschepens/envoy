@@ -61,7 +61,7 @@ TEST_F(ProviderVerifierTest, TestOkJWT) {
   createVerifier();
   MockUpstream mock_pubkey(mock_factory_ctx_.server_factory_context_.cluster_manager_, PublicKey);
 
-  EXPECT_CALL(mock_cb_, setExtractedData(_)).WillOnce(Invoke([](const Protobuf::Struct& payload) {
+  EXPECT_CALL(mock_cb_, setExtractedData(_)).WillOnce(Invoke([](Protobuf::Struct&& payload) {
     EXPECT_TRUE(TestUtility::protoEqual(payload, getExpectedPayload("my_payload")));
   }));
 
@@ -91,7 +91,7 @@ TEST_F(ProviderVerifierTest, TestOkJWTWithExtractedHeaderAndPayload) {
   createVerifier();
   MockUpstream mock_pubkey(mock_factory_ctx_.server_factory_context_.cluster_manager_, PublicKey);
 
-  EXPECT_CALL(mock_cb_, setExtractedData(_)).WillOnce(Invoke([](const Protobuf::Struct& payload) {
+  EXPECT_CALL(mock_cb_, setExtractedData(_)).WillOnce(Invoke([](Protobuf::Struct&& payload) {
     // The expected payload is a merged struct of the extracted (from the JWT) payload and
     // header data with "my_payload" and "my_header" as the keys.
     Protobuf::Struct expected_payload;
@@ -118,7 +118,7 @@ TEST_F(ProviderVerifierTest, TestExpiredJWTWithFailedStatusInMetadata) {
   createVerifier();
   MockUpstream mock_pubkey(mock_factory_ctx_.server_factory_context_.cluster_manager_, PublicKey);
 
-  EXPECT_CALL(mock_cb_, setExtractedData(_)).WillOnce(Invoke([](const Protobuf::Struct& payload) {
+  EXPECT_CALL(mock_cb_, setExtractedData(_)).WillOnce(Invoke([](Protobuf::Struct&& payload) {
     Protobuf::Struct expected_payload;
     MessageUtil::loadFromJson(ExpectedJWTExpiredStatusJSON, expected_payload);
 
@@ -140,7 +140,7 @@ TEST_F(ProviderVerifierTest, TestSpanPassedDown) {
   createVerifier();
   MockUpstream mock_pubkey(mock_factory_ctx_.server_factory_context_.cluster_manager_, PublicKey);
 
-  EXPECT_CALL(mock_cb_, setExtractedData(_)).WillOnce(Invoke([](const Protobuf::Struct& payload) {
+  EXPECT_CALL(mock_cb_, setExtractedData(_)).WillOnce(Invoke([](Protobuf::Struct&& payload) {
     EXPECT_TRUE(TestUtility::protoEqual(payload, getExpectedPayload("my_payload")));
   }));
 

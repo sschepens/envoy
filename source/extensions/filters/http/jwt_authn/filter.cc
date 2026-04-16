@@ -103,9 +103,10 @@ Http::FilterHeadersStatus Filter::decodeHeaders(Http::RequestHeaderMap& headers,
   return Http::FilterHeadersStatus::StopIteration;
 }
 
-void Filter::setExtractedData(const Protobuf::Struct& extracted_data) {
-  decoder_callbacks_->streamInfo().setDynamicMetadata("envoy.filters.http.jwt_authn",
-                                                      extracted_data);
+void Filter::setExtractedData(Protobuf::Struct&& extracted_data) {
+  (*decoder_callbacks_->streamInfo().dynamicMetadata()
+       .mutable_filter_metadata())["envoy.filters.http.jwt_authn"]
+      .Swap(&extracted_data);
 }
 
 void Filter::clearRouteCache() { decoder_callbacks_->downstreamCallbacks()->clearRouteCache(); }

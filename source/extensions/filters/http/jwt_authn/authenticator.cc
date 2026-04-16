@@ -78,8 +78,8 @@ private:
   // Handle Good Jwt either Cache JWT or verified public key.
   void handleGoodJwt(bool cache_hit);
 
-  // Normalize and set the payload metadata.
-  void setPayloadMetadata(const Protobuf::Struct& jwt_payload);
+  // Normalize and set the payload metadata. Takes ownership of jwt_payload.
+  void setPayloadMetadata(Protobuf::Struct jwt_payload);
 
   // Calls the callback with status.
   void doneWithStatus(const Status& status);
@@ -413,40 +413,55 @@ void AuthenticatorImpl::handleGoodJwt(bool cache_hit) {
     curr_token_->removeJwt(*headers_);
   }
 
+  auto& jwt_cache = jwks_data_->getJwtCache();
+
   if (set_extracted_jwt_data_cb_) {
+    // We can move from the JWT's protobuf fields when it won't be stored in the cache.
+    // cache_hit means the JWT is shared in the cache — must copy.
+    // Otherwise, we own the JWT and can move if the cache won't take it.
+    const bool owns_jwt = !cache_hit &&
+                          (!provider_.has_value() || !jwt_cache.enabled());
     if (!provider.header_in_metadata().empty()) {
-      set_extracted_jwt_data_cb_(provider.header_in_metadata(), jwt_->header_pb_);
+      if (owns_jwt) {
+        set_extracted_jwt_data_cb_(provider.header_in_metadata(), std::move(jwt_->header_pb_));
+      } else {
+        set_extracted_jwt_data_cb_(provider.header_in_metadata(), jwt_->header_pb_);
+      }
     }
     if (!provider.payload_in_metadata().empty()) {
-      setPayloadMetadata(jwt_->payload_pb_);
+      if (owns_jwt) {
+        setPayloadMetadata(std::move(jwt_->payload_pb_));
+      } else {
+        setPayloadMetadata(jwt_->payload_pb_);
+      }
     }
   }
-  if (provider_ && !cache_hit) {
-    // move the ownership of "owned_jwt_" into the function.
-    jwks_data_->getJwtCache().insert(curr_token_->token(), std::move(owned_jwt_));
+  if (provider_ && !cache_hit && jwt_cache.enabled()) {
+    jwt_cache.insert(curr_token_->token(), std::move(owned_jwt_));
   }
   doneWithStatus(Status::Ok);
 }
 
-void AuthenticatorImpl::setPayloadMetadata(const Protobuf::Struct& jwt_payload) {
+void AuthenticatorImpl::setPayloadMetadata(Protobuf::Struct jwt_payload) {
   const auto& provider = jwks_data_->getJwtProvider();
   const auto& normalize = provider.normalize_payload_in_metadata();
-  if (normalize.space_delimited_claims().empty()) {
-    set_extracted_jwt_data_cb_(provider.payload_in_metadata(), jwt_payload);
-  }
-  // Make a temporary copy to normalize the JWT struct.
-  Protobuf::Struct out_payload = jwt_payload;
-  for (const auto& claim : normalize.space_delimited_claims()) {
-    const auto& it = jwt_payload.fields().find(claim);
-    if (it != jwt_payload.fields().end() && it->second.has_string_value()) {
-      const auto list = absl::StrSplit(it->second.string_value(), ' ', absl::SkipEmpty());
-      for (const auto& elt : list) {
-        (*out_payload.mutable_fields())[claim].mutable_list_value()->add_values()->set_string_value(
-            elt);
+  if (!normalize.space_delimited_claims().empty()) {
+    // Normalize space-delimited claims into list values in-place.
+    for (const auto& claim : normalize.space_delimited_claims()) {
+      const auto it = jwt_payload.fields().find(claim);
+      if (it != jwt_payload.fields().end() && it->second.has_string_value()) {
+        // Eagerly split before mutating — mutable_list_value() destroys the source string.
+        const std::vector<std::string> parts =
+            absl::StrSplit(it->second.string_value(), ' ', absl::SkipEmpty());
+        auto* list_value =
+            (*jwt_payload.mutable_fields())[claim].mutable_list_value();
+        for (const auto& elt : parts) {
+          list_value->add_values()->set_string_value(elt);
+        }
       }
     }
   }
-  set_extracted_jwt_data_cb_(provider.payload_in_metadata(), out_payload);
+  set_extracted_jwt_data_cb_(provider.payload_in_metadata(), std::move(jwt_payload));
 }
 
 void AuthenticatorImpl::doneWithStatus(const Status& status) {
@@ -474,7 +489,7 @@ void AuthenticatorImpl::doneWithStatus(const Status& status) {
       failed_status_fields["message"].set_string_value(Envoy::JwtVerify::getStatusString(status));
       ENVOY_LOG(debug, "Code: {} Message: {}", enumToInt(status),
                 Envoy::JwtVerify::getStatusString(status));
-      set_extracted_jwt_data_cb_(failed_status_in_metadata, failed_status);
+      set_extracted_jwt_data_cb_(failed_status_in_metadata, std::move(failed_status));
     }
   }
 

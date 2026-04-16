@@ -148,23 +148,23 @@ TEST_F(FilterTest, CorsPreflightMssingAccessControlRequestMethod) {
 TEST_F(FilterTest, TestSetExtractedData) {
   setupMockConfig();
   Protobuf::Struct extracted_data;
+  auto expected_data = extracted_data;
   // A successful authentication completed inline: callback is called inside verify().
   EXPECT_CALL(*mock_verifier_, verify(_))
       .WillOnce(Invoke([&extracted_data](ContextSharedPtr context) {
-        context->callback()->setExtractedData(extracted_data);
+        context->callback()->setExtractedData(std::move(extracted_data));
         context->callback()->onComplete(Status::Ok);
       }));
-
-  EXPECT_CALL(filter_callbacks_.stream_info_, setDynamicMetadata(_, _))
-      .WillOnce(
-          Invoke([&extracted_data](const std::string& ns, const Protobuf::Struct& out_payload) {
-            EXPECT_EQ(ns, "envoy.filters.http.jwt_authn");
-            EXPECT_TRUE(TestUtility::protoEqual(out_payload, extracted_data));
-          }));
 
   auto headers = Http::TestRequestHeaderMapImpl{};
   EXPECT_EQ(Http::FilterHeadersStatus::Continue, filter_->decodeHeaders(headers, false));
   EXPECT_EQ(1U, mock_config_->stats().allowed_.value());
+
+  const auto& metadata = filter_callbacks_.stream_info_.dynamicMetadata();
+  const auto& filter_metadata = metadata.filter_metadata();
+  const auto it = filter_metadata.find("envoy.filters.http.jwt_authn");
+  ASSERT_NE(it, filter_metadata.end());
+  EXPECT_TRUE(TestUtility::protoEqual(it->second, expected_data));
 
   Buffer::OwnedImpl data("");
   EXPECT_EQ(Http::FilterDataStatus::Continue, filter_->decodeData(data, false));

@@ -46,7 +46,7 @@ public:
 
 class MockVerifierCallbacks : public Verifier::Callbacks {
 public:
-  MOCK_METHOD(void, setExtractedData, (const Protobuf::Struct& payload));
+  MOCK_METHOD(void, setExtractedData, (Protobuf::Struct && payload));
   MOCK_METHOD(void, clearRouteCache, ());
   MOCK_METHOD(void, onComplete, (const Status& status));
 };
@@ -65,6 +65,9 @@ public:
 
 class MockJwtCache : public JwtCache {
 public:
+  MockJwtCache() { ON_CALL(*this, enabled()).WillByDefault(::testing::Return(true)); }
+
+  MOCK_METHOD(bool, enabled, (), (const));
   MOCK_METHOD(JwtVerify::Jwt*, lookup, (const std::string&), ());
   MOCK_METHOD(void, insert, (const std::string&, std::unique_ptr<JwtVerify::Jwt>&&), ());
 };
