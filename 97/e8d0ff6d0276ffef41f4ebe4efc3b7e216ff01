@@ -1,0 +1,21 @@
+test/integration/ads_integration_test.cc
+  s_69e128ec4a4cce::t_12da4d329c4b19 3333
+  s_69e128ec4a4cce::t_734381a2ebf79e 3355
+  s_69e128ec4a4cce::t_12c76d061c15f7 3369-3370
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "97e8d0ff6d0276ffef41f4ebe4efc3b7e216ff01",
+  "prompts": {},
+  "sessions": {
+    "s_69e128ec4a4cce": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c80a86-d817-4a72-a5c8-8dc593da76fe",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "sschepens <sebastian.schepens@mercadolibre.com>"
+    }
+  }
+}
