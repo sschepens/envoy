@@ -1,0 +1,26 @@
+test/integration/vhds.h
+  s_75d5b546825aed::t_bf6f43c9a4da5f 366
+  s_75d5b546825aed::t_b3fe7d264b3bd1 167-175,178-179
+test/extensions/filters/http/on_demand/on_demand_integration_test.cc
+  s_75d5b546825aed::t_43da66dbc2a045 1182-1184,1186-1188,1190-1206,1213-1264,1266-1269,1271-1283,1285-1293,1295-1312,1314-1318,1320-1329
+  s_75d5b546825aed::t_a00d9022d59254 1185,1189,1284,1294
+  s_75d5b546825aed::t_b643d8bdedef52 1265,1270
+  s_75d5b546825aed::t_37ed126d4b8555 1313,1319
+  s_75d5b546825aed::t_f86b723052da92 1207-1212
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "2efb1d410af1eb0e6b1f4b0c258228331287a6a2",
+  "prompts": {},
+  "sessions": {
+    "s_75d5b546825aed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de396c38-d228-49e0-88d7-860e9432ad6d",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "sschepens <sebastian.schepens@mercadolibre.com>"
+    }
+  }
+}
