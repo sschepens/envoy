@@ -1,0 +1,25 @@
+source/common/config/subscription_factory_impl.cc
+  s_1a3772ede188a5::t_9eaab2d083dc11 48,148
+source/common/upstream/cluster_manager_impl.cc
+  s_1a3772ede188a5::t_01f226edb9816e 79,86,315-316,430,728,779,814,825-826,1028,1030,1035,1051,1055,1060,1074,1079,1084,1088-1089,1110-1120,1516-1517,1525,1527-1533,1742,1748,1761,1771,1859,1924-1972,2030,2045,2271,2296,2370
+source/extensions/config_subscription/grpc/watch_map.cc
+  s_1a3772ede188a5::t_e1d3bcc4622bb3 191,297
+test/integration/scoped_rds_integration_test.cc
+  s_1a3772ede188a5::t_fdbef2c17569fa 32-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "4b4ae4cabc0d117920aae28b3e408ae028265437",
+  "prompts": {},
+  "sessions": {
+    "s_1a3772ede188a5": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8d90e00f-617a-4203-b559-7c6de47ce41f",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "sschepens <sebastian.schepens@mercadolibre.com>"
+    }
+  }
+}
