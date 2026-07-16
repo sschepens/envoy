@@ -1,0 +1,19 @@
+test/extensions/filters/http/on_demand/on_demand_integration_test.cc
+  s_75d5b546825aed::t_2a0213821d7e82 1315-1322
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "6fcd50afdefda09bdfab7289a820dd8005542e12",
+  "prompts": {},
+  "sessions": {
+    "s_75d5b546825aed": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "de396c38-d228-49e0-88d7-860e9432ad6d",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "sschepens <sebastian.schepens@mercadolibre.com>"
+    }
+  }
+}
